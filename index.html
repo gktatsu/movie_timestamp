@@ -1,492 +1,601 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Live タイムスタンプアプリ</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
-        :root {
-            --primary-color: #FF4136;
-            --secondary-color: #7FDBFF;
-            --background-color: #FFDC00;
-            --text-color: #111111;
-            --border-color: #DDDDDD;
-            --error-color: #85144b;
-        }
 
-        * {
-            box-sizing: border-box;
-            transition: all 0.3s ease;
-        }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, var(--background-color), #FF851B);
-            color: var(--text-color);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-            background-color: rgba(255, 255, 255, 0.9);
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            text-align: center;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .logo {
-            font-size: 3rem;
-            font-weight: 600;
-            color: var(--primary-color);
-            text-shadow: 2px 2px var(--secondary-color);
-        }
-
-        h1 {
-            font-weight: 300;
-            font-size: 2rem;
-            margin-top: 0.5rem;
-            color: var(--text-color);
-        }
-
-        .input-section {
-            display: flex;
-            margin-bottom: 2rem;
-            gap: 1rem;
-        }
-
-        #youtubeLinkInput {
-            flex-grow: 1;
-            padding: 0.75rem;
-            font-size: 1rem;
-            border: 2px solid var(--border-color);
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-
-        #youtubeLinkInput:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 10px rgba(255, 65, 54, 0.3);
-        }
-
-        button {
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-        }
-
-        button:hover {
-            background-color: #E7040F;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        #loadVideoButton {
-            background-color: var(--secondary-color);
-            color: var(--text-color);
-        }
-
-        #loadVideoButton:hover {
-            background-color: #39CCCC;
-        }
-
-        /* プレイヤーのアスペクト比を16:9にするためのスタイル */
-        .player-wrapper {
-            position: relative;
-            width: 100%;
-            padding-bottom: 56.25%;
-            height: 0;
-            margin-bottom: 2rem;
-        }
-
-        #player {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        #getTimestamp {
-            display: block;
-            width: 100%;
-            margin-bottom: 2rem;
-            background-color: #2ECC40;
-        }
-
-        #getTimestamp:hover {
-            background-color: #01FF70;
-        }
-
-        #getTimestamp:disabled {
-            background-color: var(--border-color);
-            cursor: not-allowed;
-        }
-
-        #timestampEntries {
-            list-style-type: none;
-            padding: 0;
-        }
-
-        .timestamp-entry {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding: 1rem;
-            background-color: white;
-            border-radius: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-        }
-
-        .timestamp-entry:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .timestamp-entry button {
-            margin-right: 1rem;
-            padding: 0.5rem 1rem;
-            background-color: var(--secondary-color);
-            color: var(--text-color);
-        }
-
-        .timestamp-entry button:hover {
-            background-color: #39CCCC;
-        }
-
-        .timestamp-entry span {
-            font-weight: bold;
-            margin-right: 1rem;
-        }
-
-        .timestamp-entry input {
-            flex-grow: 1;
-            padding: 0.5rem;
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-
-        .timestamp-entry input:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 10px rgba(255, 65, 54, 0.3);
-        }
-
-        .timestamp-entry .delete-button {
-            margin-left: 1rem;
-            background-color: var(--error-color);
-            color: white;
-        }
-
-        .timestamp-entry .delete-button:hover {
-            background-color: #B10DC9;
-        }
-
-        #errorMessage {
-            display: none;
-            color: var(--error-color);
-            margin-top: 1rem;
-            font-weight: bold;
-            text-align: center;
-            padding: 1rem;
-            background-color: rgba(255, 255, 255, 0.8);
-            border-radius: 20px;
-            border: 2px solid var(--error-color);
-        }
-
-        #loadingIndicator {
-            display: none;
-            text-align: center;
-            margin-top: 1rem;
-            font-style: italic;
-            color: var(--primary-color);
-            font-weight: 600;
-        }
-
-        select {
-            padding: 0.5rem;
-            font-size: 1rem;
-            border: 2px solid var(--border-color);
-            border-radius: 20px;
-            background-color: white;
-            margin-bottom: 1rem;
-            width: 100%;
-            cursor: pointer;
-        }
-
-        select:focus {
-            outline: none;
-            border-color: var(--primary-color);
-            box-shadow: 0 0 10px rgba(255, 65, 54, 0.3);
-        }
-
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-        }
-
-        #endViewingButton {
-            background-color: #3D9970;
-            color: white;
-            width: 100%;
-            margin-top: 2rem;
-        }
-
-        #endViewingButton:hover {
-            background-color: #2ECC40;
-        }
-
-        @media (max-width: 600px) {
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>YouTube Live タイムスタンプアプリ</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+    
+            :root {
+                --primary-color: #FF4136;
+                --secondary-color: #7FDBFF;
+                --background-color: #FFDC00;
+                --text-color: #111111;
+                --border-color: #DDDDDD;
+                --error-color: #85144b;
+            }
+    
+            * {
+                box-sizing: border-box;
+                transition: all 0.3s ease;
+            }
+    
+            body {
+                font-family: 'Poppins', sans-serif;
+                line-height: 1.6;
+                margin: 0;
+                padding: 0;
+                background: linear-gradient(135deg, var(--background-color), #FF851B);
+                color: var(--text-color);
+                min-height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+    
             .container {
-                padding: 1rem;
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 2rem;
+                background-color: rgba(255, 255, 255, 0.9);
+                border-radius: 20px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                width: 100%;
+                text-align: center;
             }
-
+    
+            .header {
+                text-align: center;
+                margin-bottom: 2rem;
+            }
+    
+            .logo {
+                font-size: 3rem;
+                font-weight: 600;
+                color: var(--primary-color);
+                text-shadow: 2px 2px var(--secondary-color);
+            }
+    
+            h1 {
+                font-weight: 300;
+                font-size: 2rem;
+                margin-top: 0.5rem;
+                color: var(--text-color);
+            }
+    
             .input-section {
-                flex-direction: column;
+                display: flex;
+                margin-bottom: 2rem;
+                gap: 1rem;
             }
-
-            #youtubeLinkInput, #loadVideoButton {
+    
+            #youtubeLinkInput {
+                flex-grow: 1;
+                padding: 0.75rem;
+                font-size: 1rem;
+                border: 2px solid var(--border-color);
+                border-radius: 20px;
+                transition: all 0.3s ease;
+            }
+    
+            #youtubeLinkInput:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 10px rgba(255, 65, 54, 0.3);
+            }
+    
+            button {
+                padding: 0.75rem 1.5rem;
+                font-size: 1rem;
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: 20px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                font-weight: 600;
+            }
+    
+            button:hover {
+                background-color: #E7040F;
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            }
+    
+            button:active {
+                transform: translateY(0);
+            }
+    
+            #loadVideoButton {
+                background-color: var(--secondary-color);
+                color: var(--text-color);
+            }
+    
+            #loadVideoButton:hover {
+                background-color: #39CCCC;
+            }
+    
+            /* プレイヤーのアスペクト比を16:9にするためのスタイル */
+            .player-wrapper {
+                position: relative;
                 width: 100%;
+                padding-bottom: 56.25%;
+                height: 0;
+                margin-bottom: 2rem;
             }
-
+    
+            #player {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                border-radius: 20px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            }
+    
+            #getTimestamp {
+                display: block;
+                width: 100%;
+                margin-bottom: 2rem;
+                background-color: #2ECC40;
+            }
+    
+            #getTimestamp:hover {
+                background-color: #01FF70;
+            }
+    
+            #getTimestamp:disabled {
+                background-color: var(--border-color);
+                cursor: not-allowed;
+            }
+    
+            #timestampEntries {
+                list-style-type: none;
+                padding: 0;
+            }
+    
             .timestamp-entry {
-                flex-wrap: wrap;
+                display: flex;
+                align-items: center;
+                margin-bottom: 1rem;
+                padding: 1rem;
+                background-color: white;
+                border-radius: 20px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+                transition: all 0.3s ease;
             }
-
-            .timestamp-entry button, .timestamp-entry span {
-                margin-bottom: 0.5rem;
+    
+            .timestamp-entry:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
             }
-
+    
+            .timestamp-entry button {
+                margin-right: 1rem;
+                padding: 0.5rem 1rem;
+                background-color: var(--secondary-color);
+                color: var(--text-color);
+            }
+    
+            .timestamp-entry button:hover {
+                background-color: #39CCCC;
+            }
+    
+            .timestamp-entry span {
+                font-weight: bold;
+                margin-right: 1rem;
+            }
+    
             .timestamp-entry input {
-                width: 100%;
-                margin-bottom: 0.5rem;
+                flex-grow: 1;
+                padding: 0.5rem;
+                border: 1px solid var(--border-color);
+                border-radius: 20px;
+                font-size: 1rem;
+                transition: all 0.3s ease;
             }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="logo">📺</div>
-            <h1>YouTube Live タイムスタンプ　アプリ</h1>
-        </div>
-        <div class="input-section">
-            <input type="text" id="youtubeLinkInput" placeholder="YouTube Live URLを入力">
-            <button id="loadVideoButton">動画を読み込む</button>
-        </div>
-        <div id="errorMessage"></div>
-        <div id="loadingIndicator">動画を読み込んでいます...</div>
-
-        <div class="player-wrapper">
-            <div id="player"></div>
-        </div>
-
-        <label for="timeOffset">何秒前のタイムスタンプを記録しますか？</label>
-        <select id="timeOffset">
-            <option value="0">現在の時刻</option>
-            <option value="30">30秒前</option>
-            <option value="60">1分前</option>
-        </select>
-        <button id="getTimestamp" disabled>タイムスタンプを記録</button>
-        <label for="sortOrder">並び順</label>
-        <select id="sortOrder">
-            <option value="newest">新しい順</option>
-            <option value="oldest">古い順</option>
-        </select>
-        <ul id="timestampEntries"></ul>
-        <button id="endViewingButton" disabled>視聴終了 & エクセル出力</button>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-    <script>
-        let player;
-        let videoId = '';
-        let videoTitle = '';
-        let videoUrl = '';
-
-        // Load YouTube IFrame API
-        const tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        const firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-        function onYouTubeIframeAPIReady() {
-            console.log('YouTube IFrame API is ready');
-        }
-
-        document.getElementById('loadVideoButton').addEventListener('click', loadVideo);
-        document.getElementById('getTimestamp').addEventListener('click', addTimestamp);
-        document.getElementById('endViewingButton').addEventListener('click', saveToExcel);
-        document.getElementById('sortOrder').addEventListener('change', sortTimestamps);
-
-        function loadVideo() {
-            const url = document.getElementById('youtubeLinkInput').value;
-            videoId = extractVideoId(url);
-            videoUrl = url; // 動画のURLを保存
-
-            if (videoId) {
-                document.getElementById('errorMessage').style.display = 'none'; // エラーメッセージを非表示
-                document.getElementById('loadingIndicator').style.display = 'block'; // ローディング表示
-
-                if (player) {
-                    player.loadVideoById(videoId);
-                } else {
-                    player = new YT.Player('player', {
-                        videoId: videoId,
-                        events: {
-                            'onReady': onPlayerReady,
-                            'onError': onPlayerError
-                        }
-                    });
+    
+            .timestamp-entry input:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 10px rgba(255, 65, 54, 0.3);
+            }
+    
+            .timestamp-entry .delete-button {
+                margin-left: 1rem;
+                background-color: var(--error-color);
+                color: white;
+            }
+    
+            .timestamp-entry .delete-button:hover {
+                background-color: #B10DC9;
+            }
+    
+            #errorMessage {
+                display: none;
+                color: var(--error-color);
+                margin-top: 1rem;
+                font-weight: bold;
+                text-align: center;
+                padding: 1rem;
+                background-color: rgba(255, 255, 255, 0.8);
+                border-radius: 20px;
+                border: 2px solid var(--error-color);
+            }
+    
+            #loadingIndicator {
+                display: none;
+                text-align: center;
+                margin-top: 1rem;
+                font-style: italic;
+                color: var(--primary-color);
+                font-weight: 600;
+            }
+    
+            select {
+                padding: 0.5rem;
+                font-size: 1rem;
+                border: 2px solid var(--border-color);
+                border-radius: 20px;
+                background-color: white;
+                margin-bottom: 1rem;
+                width: 100%;
+                cursor: pointer;
+            }
+    
+            select:focus {
+                outline: none;
+                border-color: var(--primary-color);
+                box-shadow: 0 0 10px rgba(255, 65, 54, 0.3);
+            }
+    
+            label {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 600;
+            }
+    
+            #endViewingButton {
+                background-color: #3D9970;
+                color: white;
+                width: 100%;
+                margin-top: 2rem;
+            }
+    
+            #endViewingButton:hover {
+                background-color: #2ECC40;
+            }
+    
+            @media (max-width: 600px) {
+                .container {
+                    padding: 1rem;
                 }
-                resetTimestamps();
-            } else {
-                document.getElementById('errorMessage').textContent = '無効なYouTube URLです。正しいURLを入力してください。';
+    
+                .input-section {
+                    flex-direction: column;
+                }
+    
+                #youtubeLinkInput, #loadVideoButton {
+                    width: 100%;
+                }
+    
+                .timestamp-entry {
+                    flex-wrap: wrap;
+                }
+    
+                .timestamp-entry button, .timestamp-entry span {
+                    margin-bottom: 0.5rem;
+                }
+    
+                .timestamp-entry input {
+                    width: 100%;
+                    margin-bottom: 0.5rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">📺</div>
+                <h1>YouTube Live タイムスタンプ アプリ</h1>
+            </div>
+            <div class="input-section">
+                <input type="text" id="youtubeLinkInput" placeholder="YouTube Live URLを入力">
+                <button id="loadVideoButton">動画を読み込む</button>
+            </div>
+            <div id="errorMessage"></div>
+            <div id="loadingIndicator">動画を読み込んでいます...</div>
+    
+            <div class="player-wrapper">
+                <div id="player"></div>
+            </div>
+    
+            <label for="timeOffset">何秒前のタイムスタンプを記録しますか？</label>
+            <select id="timeOffset">
+                <option value="0">現在の時刻</option>
+                <option value="30">30秒前</option>
+                <option value="60">1分前</option>
+            </select>
+            <button id="getTimestamp" disabled>タイムスタンプを記録</button>
+            <label for="sortOrder">並び順</label>
+            <select id="sortOrder">
+                <option value="newest">新しい順</option>
+                <option value="oldest">古い順</option>
+            </select>
+            <ul id="timestampEntries"></ul>
+    
+            <!-- エクセルのインポート機能 -->
+            <label for="importFile">エクセルファイルをインポートしてタイムスタンプを復元</label>
+            <input type="file" id="importFile" accept=".xlsx">
+            <button id="importExcelButton">インポート</button>
+    
+            <button id="endViewingButton" disabled>視聴終了 & エクセル出力</button>
+        </div>
+    
+        <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+        <script>
+            let player;
+            let videoId = '';
+            let currentVideoTitle = '';
+            let currentVideoUrl = '';
+    
+            // タイムスタンプごとの動画タイトルとURLを保存するためのリスト
+            let timestamps = [];
+    
+            // YouTube APIの読み込み
+            const tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    
+            function onYouTubeIframeAPIReady() {
+                console.log('YouTube IFrame API is ready');
+            }
+    
+            document.getElementById('loadVideoButton').addEventListener('click', loadVideo);
+            document.getElementById('getTimestamp').addEventListener('click', addTimestamp);
+            document.getElementById('endViewingButton').addEventListener('click', saveToExcel);
+            document.getElementById('importExcelButton').addEventListener('click', importExcel);
+            document.getElementById('sortOrder').addEventListener('change', sortTimestamps);
+    
+            // 動画を読み込む
+            function loadVideo() {
+                const url = document.getElementById('youtubeLinkInput').value;
+                videoId = extractVideoId(url);
+                currentVideoUrl = url; // 動画のURLを保存
+    
+                if (videoId) {
+                    document.getElementById('errorMessage').style.display = 'none'; // エラーメッセージを非表示
+                    document.getElementById('loadingIndicator').style.display = 'block'; // ローディング表示
+    
+                    if (player) {
+                        player.loadVideoById(videoId);
+                    } else {
+                        player = new YT.Player('player', {
+                            videoId: videoId,
+                            events: {
+                                'onReady': onPlayerReady,
+                                'onError': onPlayerError
+                            }
+                        });
+                    }
+                    resetTimestamps();
+                } else {
+                    document.getElementById('errorMessage').textContent = '無効なYouTube URLです。正しいURLを入力してください。';
+                    document.getElementById('errorMessage').style.display = 'block'; // エラーメッセージを表示
+                    document.getElementById('loadingIndicator').style.display = 'none'; // ローディングを非表示
+                }
+            }
+    
+            function onPlayerReady(event) {
+                document.getElementById('getTimestamp').disabled = false;
+                document.getElementById('endViewingButton').disabled = false;
+                document.getElementById('loadingIndicator').style.display = 'none';
+            }
+    
+            function onPlayerError(event) {
+                document.getElementById('errorMessage').textContent = '動画の読み込み中にエラーが発生しました。URLを確認して再試行してください。';
                 document.getElementById('errorMessage').style.display = 'block'; // エラーメッセージを表示
                 document.getElementById('loadingIndicator').style.display = 'none'; // ローディングを非表示
             }
-        }
-
-        function extractVideoId(url) {
-            const regExp = /(?:youtube(?:-nocookie)?.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-            const match = url.match(regExp);
-            return (match && match[1].length === 11) ? match[1] : null;
-        }
-
-        function onPlayerReady(event) {
-            document.getElementById('getTimestamp').disabled = false;
-            document.getElementById('endViewingButton').disabled = false;
-            document.getElementById('loadingIndicator').style.display = 'none';
-
-            // 動画のタイトルを取得
-            videoTitle = player.getVideoData().title;
-        }
-
-        function onPlayerError(event) {
-            document.getElementById('errorMessage').textContent = '動画の読み込み中にエラーが発生しました。URLを確認して再試行してください。';
-            document.getElementById('errorMessage').style.display = 'block'; // エラーメッセージを表示
-            document.getElementById('loadingIndicator').style.display = 'none'; // ローディングを非表示
-        }
-
-        function addTimestamp() {
-            const currentTime = player.getCurrentTime();
-            const offset = parseInt(document.getElementById('timeOffset').value, 10);
-            let targetTime = currentTime - offset;
-
-            if (targetTime < 0) {
-                targetTime = 0;
+    
+            function extractVideoId(url) {
+                const regExp = /(?:youtube(?:-nocookie)?.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+                const match = url.match(regExp);
+                return (match && match[1].length === 11) ? match[1] : null;
             }
-
-            const formattedTime = formatTime(targetTime);
-            const timestampEntries = document.getElementById('timestampEntries');
-
-            const li = document.createElement('li');
-            li.className = 'timestamp-entry';
-            li.innerHTML = `
-                <button onclick="seekTo(${targetTime})">再生</button>
-                <span>${formattedTime}</span>
-                <input type="text" placeholder="コメントを入力">
-                <button class="delete-button" onclick="deleteTimestamp(this)">削除</button>
-            `;
-
-            const sortOrder = document.getElementById('sortOrder').value;
-            if (sortOrder === 'newest') {
-                timestampEntries.insertBefore(li, timestampEntries.firstChild);
-            } else {
-                timestampEntries.appendChild(li);
+    
+            // タイムスタンプを追加する
+            function addTimestamp() {
+                const currentTime = player.getCurrentTime();
+                const offset = parseInt(document.getElementById('timeOffset').value, 10);
+                let targetTime = currentTime - offset;
+    
+                if (targetTime < 0) {
+                    targetTime = 0;
+                }
+    
+                const formattedTime = formatTime(targetTime);
+                const timestampEntries = document.getElementById('timestampEntries');
+    
+                const li = document.createElement('li');
+                li.className = 'timestamp-entry';
+                li.innerHTML = `
+                    <button onclick="seekTo(${targetTime})">再生</button>
+                    <span>${formattedTime}</span>
+                    <input type="text" placeholder="コメントを入力">
+                    <button class="delete-button" onclick="deleteTimestamp(this)">削除</button>
+                `;
+    
+                // タイムスタンプとその時点での動画情報を保存
+                currentVideoTitle = player.getVideoData().title;  // タイムスタンプを押した時点での動画タイトルを取得
+                timestamps.push({
+                    time: formattedTime,
+                    videoTitle: currentVideoTitle,
+                    videoUrl: currentVideoUrl,
+                    comment: ''
+                });
+    
+                const sortOrder = document.getElementById('sortOrder').value;
+                if (sortOrder === 'newest') {
+                    timestampEntries.insertBefore(li, timestampEntries.firstChild);
+                } else {
+                    timestampEntries.appendChild(li);
+                }
             }
-        }
-
-        function formatTime(time) {
-            const minutes = Math.floor(time / 60);
-            const seconds = Math.floor(time % 60);
-            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        }
-
-        function seekTo(time) {
-            player.seekTo(time);
-            player.playVideo();
-        }
-
-        function resetTimestamps() {
-            document.getElementById('timestampEntries').innerHTML = '';
-        }
-
-        function deleteTimestamp(element) {
-            const li = element.parentElement;
-            li.remove();
-        }
-
-        function sortTimestamps() {
-            const timestampEntries = document.getElementById('timestampEntries');
-            const timestamps = Array.from(timestampEntries.children);
-            const sortOrder = document.getElementById('sortOrder').value;
-
-            timestamps.sort((a, b) => {
-                const timeA = a.querySelector('span').textContent;
-                const timeB = b.querySelector('span').textContent;
-                return sortOrder === 'newest' ? timeB.localeCompare(timeA) : timeA.localeCompare(timeB);
-            });
-
-            timestamps.forEach(timestamp => timestampEntries.appendChild(timestamp));
-        }
-
-        function saveToExcel() {
-            const timestampEntries = document.querySelectorAll('.timestamp-entry');
-            const data = [];
-
-            // 動画情報を最初に挿入
-            data.push({ A: 'タイトル', B: videoTitle });
-            data.push({ A: 'URL', B: videoUrl });
-            data.push({ A: 'タイムスタンプ', B: 'コメント' });
-
-            // タイムスタンプとコメントを挿入
-            timestampEntries.forEach(entry => {
-                const time = entry.querySelector('span').innerText;
-                const comment = entry.querySelector('input').value;
-                data.push({ A: time, B: comment });
-            });
-
-            // シート作成
-            const ws = XLSX.utils.json_to_sheet(data, { header: ['A', 'B'], skipHeader: true });
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Timestamps');
-
-            // エクセルファイル出力
-            XLSX.writeFile(wb, 'timestamps.xlsx');
-        }
-    </script>
-</body>
-</html>
+    
+            function formatTime(time) {
+                const minutes = Math.floor(time / 60);
+                const seconds = Math.floor(time % 60);
+                return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            }
+    
+            function seekTo(time) {
+                player.seekTo(time);
+                player.playVideo();
+            }
+    
+            function resetTimestamps() {
+                document.getElementById('timestampEntries').innerHTML = '';
+                timestamps = []; // タイムスタンプデータもリセット
+            }
+    
+            function deleteTimestamp(element) {
+                const li = element.parentElement;
+                li.remove();
+            }
+    
+            function sortTimestamps() {
+                const timestampEntries = document.getElementById('timestampEntries');
+                const timestampsArray = Array.from(timestampEntries.children);
+                const sortOrder = document.getElementById('sortOrder').value;
+    
+                timestampsArray.sort((a, b) => {
+                    const timeA = a.querySelector('span').textContent;
+                    const timeB = b.querySelector('span').textContent;
+                    return sortOrder === 'newest' ? timeB.localeCompare(timeA) : timeA.localeCompare(timeB);
+                });
+    
+                timestampsArray.forEach(timestamp => timestampEntries.appendChild(timestamp));
+            }
+    
+            // エクセルファイルの保存機能
+            function saveToExcel() {
+                const timestampEntries = document.querySelectorAll('.timestamp-entry');
+                const data = [];
+    
+                // 動画情報を取得してから挿入
+                if (timestamps.length > 0) {
+                    // タイムスタンプが存在する場合、最新の動画タイトルとURLを反映
+                    const latestVideoTitle = timestamps[timestamps.length - 1].videoTitle;
+                    const latestVideoUrl = timestamps[timestamps.length - 1].videoUrl;
+    
+                    data.push({ A: 'タイトル', B: latestVideoTitle });
+                    data.push({ A: 'URL', B: latestVideoUrl });
+                } else {
+                    // タイムスタンプが存在しない場合は現在の動画タイトルとURL
+                    data.push({ A: 'タイトル', B: currentVideoTitle });
+                    data.push({ A: 'URL', B: currentVideoUrl });
+                }
+    
+                data.push({ A: 'タイムスタンプ', B: 'コメント' });
+    
+                // タイムスタンプとコメントを挿入
+                timestampEntries.forEach((entry, index) => {
+                    const time = entry.querySelector('span').innerText;
+                    const comment = entry.querySelector('input').value;
+    
+                    // タイムスタンプ情報にコメントを反映
+                    timestamps[index].comment = comment;
+    
+                    data.push({ A: time, B: comment });
+                });
+    
+                // シート作成
+                const ws = XLSX.utils.json_to_sheet(data, { header: ['A', 'B'], skipHeader: true });
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Timestamps');
+    
+                // エクセルファイル出力
+                XLSX.writeFile(wb, 'timestamps.xlsx');
+            }
+    
+            // エクセルファイルのインポート機能
+            function importExcel() {
+                const fileInput = document.getElementById('importFile').files[0];
+                if (!fileInput) {
+                    alert("エクセルファイルを選択してください");
+                    return;
+                }
+    
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+    
+                    const sheet = workbook.Sheets['Timestamps'];
+                    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    
+                    // 1行目と2行目から動画の情報を取得
+                    currentVideoTitle = rows[0][1]; // B1: 動画のタイトル
+                    currentVideoUrl = rows[1][1]; // B2: 動画のURL
+                    videoId = extractVideoId(currentVideoUrl);
+    
+                    // プレイヤーに動画をロード
+                    document.getElementById('youtubeLinkInput').value = currentVideoUrl;
+                    loadVideo();
+    
+                    // 4行目以降にタイムスタンプとコメントを復元
+                    resetTimestamps();
+                    for (let i = 3; i < rows.length; i++) {
+                        const time = rows[i][0];
+                        const comment = rows[i][1];
+                        addRestoredTimestamp(time, comment);
+                    }
+                };
+                reader.readAsArrayBuffer(fileInput);
+            }
+    
+            // 復元されたタイムスタンプを表示する
+            function addRestoredTimestamp(time, comment) {
+                const timestampEntries = document.getElementById('timestampEntries');
+    
+                const li = document.createElement('li');
+                li.className = 'timestamp-entry';
+                li.innerHTML = `
+                    <button onclick="seekTo(${parseTime(time)})">再生</button>
+                    <span>${time}</span>
+                    <input type="text" value="${comment}">
+                    <button class="delete-button" onclick="deleteTimestamp(this)">削除</button>
+                `;
+    
+                timestamps.push({
+                    time: time,
+                    videoTitle: currentVideoTitle,
+                    videoUrl: currentVideoUrl,
+                    comment: comment
+                });
+    
+                const sortOrder = document.getElementById('sortOrder').value;
+                if (sortOrder === 'newest') {
+                    timestampEntries.insertBefore(li, timestampEntries.firstChild);
+                } else {
+                    timestampEntries.appendChild(li);
+                }
+            }
+    
+            // 時間を分:秒形式から秒数に変換
+            function parseTime(timeString) {
+                const [minutes, seconds] = timeString.split(':').map(Number);
+                return minutes * 60 + seconds;
+            }
+        </script>
+    </body>
+    </html>
+    
