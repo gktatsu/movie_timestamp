@@ -42,6 +42,7 @@
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             width: 100%;
+            text-align: center; /* コンテナ全体の中央寄せ */
         }
 
         .header {
@@ -115,13 +116,23 @@
             background-color: #39CCCC;
         }
 
-        #player {
-            margin-bottom: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            border-radius: 20px;
-            overflow: hidden;
+        /* プレイヤーのアスペクト比を16:9にするためのスタイル */
+        .player-wrapper {
+            position: relative;
             width: 100%;
-            height: auto;
+            padding-bottom: 56.25%; /* 高さを16:9の比率に設定 (9/16 * 100 = 56.25%) */
+            height: 0;
+            margin-bottom: 2rem;
+        }
+
+        #player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
 
         #getTimestamp {
@@ -281,27 +292,13 @@
                 margin-bottom: 0.5rem;
             }
         }
-
-        @media (max-width: 1200px) {
-            #player {
-                height: auto;
-                max-height: 480px;
-            }
-        }
-
-        @media (min-width: 1201px) {
-            #player {
-                height: 390px;
-                max-width: 640px;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="logo">📺</div>
-            <h1>YouTube Live タイムスタンプ　アプリ</h1>
+            <h1>YouTube タイムスタンプ　アプリ</h1>
         </div>
         <div class="input-section">
             <input type="text" id="youtubeLinkInput" placeholder="YouTube Live URLを入力">
@@ -309,7 +306,12 @@
         </div>
         <div id="errorMessage"></div>
         <div id="loadingIndicator">動画を読み込んでいます...</div>
-        <div id="player"></div>
+
+        <!-- 16:9のアスペクト比を維持するためのラッパー -->
+        <div class="player-wrapper">
+            <div id="player"></div>
+        </div>
+
         <label for="timeOffset">何秒前のタイムスタンプを記録しますか？</label>
         <select id="timeOffset">
             <option value="0">現在の時刻</option>
