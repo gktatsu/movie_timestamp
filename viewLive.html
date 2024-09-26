@@ -22,9 +22,24 @@
             padding: 10px 20px;
             font-size: 16px;
         }
-        #timestampDisplay {
-            font-size: 20px;
-            margin-top: 10px;
+        #timestampsList {
+            width: 80%;
+            margin-top: 20px;
+        }
+        .timestamp-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .timestamp-entry input {
+            width: 70%;
+            padding: 5px;
+        }
+        .play-button {
+            padding: 5px 10px;
+            font-size: 14px;
+            margin-right: 10px;
         }
     </style>
 </head>
@@ -35,16 +50,18 @@
         </div>
         <div id="controls">
             <button id="getTimestamp">記録ボタン</button>
-            <div id="timestampDisplay">タイムスタンプ: <span id="timestamp">--:--</span></div>
+        </div>
+        <div id="timestampsList">
+            <h3>記録されたタイムスタンプ</h3>
+            <ul id="timestampEntries"></ul>
         </div>
     </div>
 
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         let player;
-        let timestampElement = document.getElementById('timestamp');
 
-        // URLからビデオIDを取得
+        // YouTube動画IDを取得
         const urlParams = new URLSearchParams(window.location.search);
         const videoId = urlParams.get('videoId');
 
@@ -53,19 +70,52 @@
             player = new YT.Player('player', {
                 height: '390',
                 width: '640',
-                videoId: videoId, // URLから取得したYouTubeライブのビデオID
+                videoId: "EaavFcAU0hI", // URLから取得したYouTubeライブのビデオID
                 events: {
                     'onReady': onPlayerReady
                 }
             });
         }
 
+        // タイムスタンプリストの要素を管理
+        const timestampEntriesElement = document.getElementById('timestampEntries');
+
         // プレーヤーが準備完了時に呼び出される関数
         function onPlayerReady(event) {
             document.getElementById('getTimestamp').addEventListener('click', function() {
                 const currentTime = player.getCurrentTime();  // タイムスタンプを取得
-                timestampElement.textContent = formatTime(currentTime); // 取得した時間を表示
+                const formattedTime = formatTime(currentTime); // フォーマットされた時間
+                addTimestampEntry(formattedTime, currentTime);  // タイムスタンプをリストに追加
             });
+        }
+
+        // タイムスタンプをリストに追加する関数
+        function addTimestampEntry(displayTime, actualTime) {
+            // 新しいリスト項目を作成
+            const li = document.createElement('li');
+            li.classList.add('timestamp-entry');
+
+            // 再生ボタンを作成
+            const playButton = document.createElement('button');
+            playButton.classList.add('play-button');
+            playButton.textContent = '再生';
+            playButton.addEventListener('click', function() {
+                seekToTime(actualTime);  // クリック時に指定した時間から再生
+            });
+
+            // タイムスタンプ表示とコメント入力フィールド
+            const timestampSpan = document.createElement('span');
+            timestampSpan.textContent = `タイムスタンプ: ${displayTime}`;
+
+            const commentInput = document.createElement('input');
+            commentInput.type = 'text';
+            commentInput.placeholder = 'コメントを入力';
+
+            // リスト項目に追加
+            li.appendChild(playButton);
+            li.appendChild(timestampSpan);
+            li.appendChild(commentInput);
+            timestampEntriesElement.appendChild(li);
         }
 
         // 秒数を分:秒形式に変換する関数
@@ -73,6 +123,11 @@
             const minutes = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        // 指定した時間にシークする関数
+        function seekToTime(seconds) {
+            player.seekTo(seconds, true);  // 指定した時間から再生
         }
     </script>
 </body>
