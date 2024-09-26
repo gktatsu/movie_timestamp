@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube TimeStamp App</title>
+    <title>YouTube Live タイムスタンプアプリ</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
@@ -116,7 +116,6 @@
             background-color: #39CCCC;
         }
 
-        /* プレイヤーのアスペクト比を16:9にするためのスタイル */
         .player-wrapper {
             position: relative;
             width: 100%;
@@ -213,7 +212,6 @@
             background-color: #B10DC9;
         }
 
-        /* エラーメッセージの初期状態は非表示 */
         #errorMessage {
             display: none;
             color: var(--error-color);
@@ -301,10 +299,10 @@
     <div class="container">
         <div class="header">
             <div class="logo">📺</div>
-            <h1>YouTube TimeStamp App</h1>
+            <h1>YouTube Live タイムスタンプ　アプリ</h1>
         </div>
         <div class="input-section">
-            <input type="text" id="youtubeLinkInput" placeholder="YouTubeのURLを入力">
+            <input type="text" id="youtubeLinkInput" placeholder="YouTube Live URLを入力">
             <button id="loadVideoButton">動画を読み込む</button>
         </div>
         <div id="errorMessage"></div>
@@ -334,6 +332,8 @@
     <script>
         let player;
         let videoId = '';
+        let videoTitle = '';
+        let videoUrl = '';
 
         // Load YouTube IFrame API
         const tag = document.createElement('script');
@@ -353,10 +353,11 @@
         function loadVideo() {
             const url = document.getElementById('youtubeLinkInput').value;
             videoId = extractVideoId(url);
+            videoUrl = url;
 
             if (videoId) {
-                document.getElementById('errorMessage').style.display = 'none'; // エラーメッセージを非表示
-                document.getElementById('loadingIndicator').style.display = 'block'; // ローディング表示
+                document.getElementById('errorMessage').style.display = 'none';
+                document.getElementById('loadingIndicator').style.display = 'block';
 
                 if (player) {
                     player.loadVideoById(videoId);
@@ -369,11 +370,13 @@
                         }
                     });
                 }
+
+                fetchVideoTitle(videoId); // 動画のタイトルを取得
                 resetTimestamps();
             } else {
                 document.getElementById('errorMessage').textContent = '無効なYouTube URLです。正しいURLを入力してください。';
-                document.getElementById('errorMessage').style.display = 'block'; // エラーメッセージを表示
-                document.getElementById('loadingIndicator').style.display = 'none'; // ローディングを非表示
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('loadingIndicator').style.display = 'none';
             }
         }
 
@@ -381,6 +384,11 @@
             const regExp = /(?:youtube(?:-nocookie)?.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
             const match = url.match(regExp);
             return (match && match[1].length === 11) ? match[1] : null;
+        }
+
+        function fetchVideoTitle(videoId) {
+            // YouTube Data APIを使わずに、IFrame Player APIからタイトルを取得
+            player.getVideoData().title ? videoTitle = player.getVideoData().title : videoTitle = 'YouTube Video';
         }
 
         function onPlayerReady(event) {
@@ -391,8 +399,8 @@
 
         function onPlayerError(event) {
             document.getElementById('errorMessage').textContent = '動画の読み込み中にエラーが発生しました。URLを確認して再試行してください。';
-            document.getElementById('errorMessage').style.display = 'block'; // エラーメッセージを表示
-            document.getElementById('loadingIndicator').style.display = 'none'; // ローディングを非表示
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('loadingIndicator').style.display = 'none';
         }
 
         function addTimestamp() {
@@ -461,6 +469,14 @@
         function saveToExcel() {
             const timestampEntries = document.querySelectorAll('.timestamp-entry');
             const data = [];
+
+            // 1行目に動画のタイトルを追加
+            data.push({ Time: '動画タイトル', Comment: videoTitle });
+
+            // 2行目にYouTubeのリンクを追加
+            data.push({ Time: '動画リンク', Comment: videoUrl });
+
+            // 3行目以降にタイムスタンプとコメントを追加
             timestampEntries.forEach(entry => {
                 const time = entry.querySelector('span').innerText;
                 const comment = entry.querySelector('input').value;
