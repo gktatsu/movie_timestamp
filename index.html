@@ -205,8 +205,10 @@
             <option value="oldest">古い順</option>
         </select>
         <ul id="timestampEntries"></ul>
+        <button id="endViewingButton" disabled>視聴終了<br>（タイムスタンプとコメントを保存する）</button>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script>
         let player;
         let videoId = '';
@@ -223,6 +225,7 @@
 
         document.getElementById('loadVideoButton').addEventListener('click', loadVideo);
         document.getElementById('getTimestamp').addEventListener('click', addTimestamp);
+        document.getElementById('endViewingButton').addEventListener('click', saveToExcel);
 
         function loadVideo() {
             const url = document.getElementById('youtubeLinkInput').value;
@@ -260,6 +263,7 @@
 
         function onPlayerReady(event) {
             document.getElementById('getTimestamp').disabled = false;
+            document.getElementById('endViewingButton').disabled = false;
             document.getElementById('loadingIndicator').style.display = 'none';
         }
 
@@ -288,7 +292,6 @@
             } else {
                 timestampEntries.appendChild(li);
             }
-            saveTimestampToLocalStorage(currentTime, '');
         }
 
         function formatTime(time) {
@@ -311,10 +314,20 @@
             li.remove();
         }
 
-        function saveTimestampToLocalStorage(time, comment) {
-            let timestamps = JSON.parse(localStorage.getItem('timestamps')) || [];
-            timestamps.push({ time, comment });
-            localStorage.setItem('timestamps', JSON.stringify(timestamps));
+        function saveToExcel() {
+            const timestampEntries = document.querySelectorAll('.timestamp-entry');
+            const data = [];
+            timestampEntries.forEach(entry => {
+                const time = entry.querySelector('span').innerText;
+                const comment = entry.querySelector('input').value;
+                data.push({ Time: time, Comment: comment });
+            });
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Timestamps');
+
+            XLSX.writeFile(wb, 'timestamps.xlsx');
         }
     </script>
 </body>
