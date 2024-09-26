@@ -5,36 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YouTube Live タイムスタンプアプリ</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
         :root {
-            --primary-color: #3498db;
-            --secondary-color: #2ecc71;
-            --background-color: #f5f6fa;
-            --text-color: #34495e;
-            --border-color: #bdc3c7;
-            --error-color: #e74c3c;
+            --primary-color: #FF4136;
+            --secondary-color: #7FDBFF;
+            --background-color: #FFDC00;
+            --text-color: #111111;
+            --border-color: #DDDDDD;
+            --error-color: #85144b;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.3s ease;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', sans-serif;
             line-height: 1.6;
             margin: 0;
             padding: 0;
-            background-color: var(--background-color);
+            background: linear-gradient(135deg, var(--background-color), #FF851B);
             color: var(--text-color);
+            min-height: 100vh;
         }
 
         .container {
             max-width: 800px;
             margin: 0 auto;
             padding: 2rem;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            text-shadow: 2px 2px var(--secondary-color);
         }
 
         h1 {
-            text-align: center;
-            color: var(--primary-color);
-            margin-bottom: 2rem;
             font-weight: 300;
-            font-size: 2.5rem;
+            font-size: 2rem;
+            margin-top: 0.5rem;
+            color: var(--text-color);
         }
 
         .input-section {
@@ -48,13 +70,14 @@
             padding: 0.75rem;
             font-size: 1rem;
             border: 2px solid var(--border-color);
-            border-radius: 4px;
-            transition: border-color 0.3s ease;
+            border-radius: 20px;
+            transition: all 0.3s ease;
         }
 
         #youtubeLinkInput:focus {
             outline: none;
             border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(255, 65, 54, 0.3);
         }
 
         button {
@@ -63,31 +86,35 @@
             background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 20px;
             cursor: pointer;
-            transition: background-color 0.3s ease, transform 0.1s ease;
+            transition: all 0.3s ease;
+            font-weight: 600;
         }
 
         button:hover {
-            background-color: #2980b9;
+            background-color: #E7040F;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
         button:active {
-            transform: scale(0.98);
+            transform: translateY(0);
         }
 
         #loadVideoButton {
             background-color: var(--secondary-color);
+            color: var(--text-color);
         }
 
         #loadVideoButton:hover {
-            background-color: #27ae60;
+            background-color: #39CCCC;
         }
 
         #player {
             margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border-radius: 4px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
             overflow: hidden;
         }
 
@@ -95,6 +122,11 @@
             display: block;
             width: 100%;
             margin-bottom: 2rem;
+            background-color: #2ECC40;
+        }
+
+        #getTimestamp:hover {
+            background-color: #01FF70;
         }
 
         #getTimestamp:disabled {
@@ -113,23 +145,25 @@
             margin-bottom: 1rem;
             padding: 1rem;
             background-color: white;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s ease;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
         }
 
         .timestamp-entry:hover {
-            transform: translateY(-2px);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
         .timestamp-entry button {
             margin-right: 1rem;
             padding: 0.5rem 1rem;
             background-color: var(--secondary-color);
+            color: var(--text-color);
         }
 
         .timestamp-entry button:hover {
-            background-color: #27ae60;
+            background-color: #39CCCC;
         }
 
         .timestamp-entry span {
@@ -141,29 +175,35 @@
             flex-grow: 1;
             padding: 0.5rem;
             border: 1px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: 20px;
             font-size: 1rem;
-            transition: border-color 0.3s ease;
+            transition: all 0.3s ease;
         }
 
         .timestamp-entry input:focus {
             outline: none;
             border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(255, 65, 54, 0.3);
         }
 
         .timestamp-entry .delete-button {
             margin-left: 1rem;
             background-color: var(--error-color);
+            color: white;
         }
 
         .timestamp-entry .delete-button:hover {
-            background-color: #c0392b;
+            background-color: #B10DC9;
         }
 
         #errorMessage {
             color: var(--error-color);
             margin-top: 1rem;
             font-weight: bold;
+            text-align: center;
+            padding: 1rem;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
         }
 
         #loadingIndicator {
@@ -172,17 +212,48 @@
             margin-top: 1rem;
             font-style: italic;
             color: var(--primary-color);
+            font-weight: 600;
         }
 
-        #sortOrder {
+        select {
+            padding: 0.5rem;
+            font-size: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 20px;
+            background-color: white;
             margin-bottom: 1rem;
+            width: 100%;
+            cursor: pointer;
         }
 
-        #timeOffset {
-            margin-bottom: 1rem;
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(255, 65, 54, 0.3);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        #endViewingButton {
+            background-color: #3D9970;
+            color: white;
+            width: 100%;
+            margin-top: 2rem;
+        }
+
+        #endViewingButton:hover {
+            background-color: #2ECC40;
         }
 
         @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+
             .input-section {
                 flex-direction: column;
             }
@@ -190,12 +261,28 @@
             #youtubeLinkInput, #loadVideoButton {
                 width: 100%;
             }
+
+            .timestamp-entry {
+                flex-wrap: wrap;
+            }
+
+            .timestamp-entry button, .timestamp-entry span {
+                margin-bottom: 0.5rem;
+            }
+
+            .timestamp-entry input {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>YouTube Live タイムスタンプアプリ</h1>
+        <div class="header">
+            <div class="logo">📺</div>
+            <h1>YouTube Live タイムスタンプアプリ</h1>
+        </div>
         <div class="input-section">
             <input type="text" id="youtubeLinkInput" placeholder="YouTube Live URLを入力">
             <button id="loadVideoButton">動画を読み込む</button>
@@ -210,12 +297,13 @@
             <option value="60">1分前</option>
         </select>
         <button id="getTimestamp" disabled>タイムスタンプを記録</button>
+        <label for="sortOrder">並び順</label>
         <select id="sortOrder">
             <option value="newest">新しい順</option>
             <option value="oldest">古い順</option>
         </select>
         <ul id="timestampEntries"></ul>
-        <button id="endViewingButton" disabled>視聴終了</button>
+        <button id="endViewingButton" disabled>視聴終了 & エクセル出力</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -236,6 +324,7 @@
         document.getElementById('loadVideoButton').addEventListener('click', loadVideo);
         document.getElementById('getTimestamp').addEventListener('click', addTimestamp);
         document.getElementById('endViewingButton').addEventListener('click', saveToExcel);
+        document.getElementById('sortOrder').addEventListener('change', sortTimestamps);
 
         function loadVideo() {
             const url = document.getElementById('youtubeLinkInput').value;
@@ -329,6 +418,20 @@
         function deleteTimestamp(element) {
             const li = element.parentElement;
             li.remove();
+        }
+
+        function sortTimestamps() {
+            const timestampEntries = document.getElementById('timestampEntries');
+            const timestamps = Array.from(timestampEntries.children);
+            const sortOrder = document.getElementById('sortOrder').value;
+
+            timestamps.sort((a, b) => {
+                const timeA = a.querySelector('span').textContent;
+                const timeB = b.querySelector('span').textContent;
+                return sortOrder === 'newest' ? timeB.localeCompare(timeA) : timeA.localeCompare(timeB);
+            });
+
+            timestamps.forEach(timestamp => timestampEntries.appendChild(timestamp));
         }
 
         function saveToExcel() {
