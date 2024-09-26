@@ -116,6 +116,7 @@
             background-color: #39CCCC;
         }
 
+        /* プレイヤーのアスペクト比を16:9にするためのスタイル */
         .player-wrapper {
             position: relative;
             width: 100%;
@@ -353,11 +354,11 @@
         function loadVideo() {
             const url = document.getElementById('youtubeLinkInput').value;
             videoId = extractVideoId(url);
-            videoUrl = url;
+            videoUrl = url; // 動画のURLを保存
 
             if (videoId) {
-                document.getElementById('errorMessage').style.display = 'none';
-                document.getElementById('loadingIndicator').style.display = 'block';
+                document.getElementById('errorMessage').style.display = 'none'; // エラーメッセージを非表示
+                document.getElementById('loadingIndicator').style.display = 'block'; // ローディング表示
 
                 if (player) {
                     player.loadVideoById(videoId);
@@ -370,13 +371,11 @@
                         }
                     });
                 }
-
-                fetchVideoTitle(videoId); // 動画のタイトルを取得
                 resetTimestamps();
             } else {
                 document.getElementById('errorMessage').textContent = '無効なYouTube URLです。正しいURLを入力してください。';
-                document.getElementById('errorMessage').style.display = 'block';
-                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('errorMessage').style.display = 'block'; // エラーメッセージを表示
+                document.getElementById('loadingIndicator').style.display = 'none'; // ローディングを非表示
             }
         }
 
@@ -386,21 +385,19 @@
             return (match && match[1].length === 11) ? match[1] : null;
         }
 
-        function fetchVideoTitle(videoId) {
-            // YouTube Data APIを使わずに、IFrame Player APIからタイトルを取得
-            player.getVideoData().title ? videoTitle = player.getVideoData().title : videoTitle = 'YouTube Video';
-        }
-
         function onPlayerReady(event) {
             document.getElementById('getTimestamp').disabled = false;
             document.getElementById('endViewingButton').disabled = false;
             document.getElementById('loadingIndicator').style.display = 'none';
+
+            // 動画のタイトルを取得
+            videoTitle = player.getVideoData().title;
         }
 
         function onPlayerError(event) {
             document.getElementById('errorMessage').textContent = '動画の読み込み中にエラーが発生しました。URLを確認して再試行してください。';
-            document.getElementById('errorMessage').style.display = 'block';
-            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'block'; // エラーメッセージを表示
+            document.getElementById('loadingIndicator').style.display = 'none'; // ローディングを非表示
         }
 
         function addTimestamp() {
@@ -470,23 +467,24 @@
             const timestampEntries = document.querySelectorAll('.timestamp-entry');
             const data = [];
 
-            // 1行目に動画のタイトルを追加
-            data.push({ Time: '動画タイトル', Comment: videoTitle });
+            // 動画情報を最初に挿入
+            data.push({ A: 'タイトル', B: videoTitle });
+            data.push({ A: 'URL', B: videoUrl });
+            data.push({ A: 'タイムスタンプ', B: 'コメント' });
 
-            // 2行目にYouTubeのリンクを追加
-            data.push({ Time: '動画リンク', Comment: videoUrl });
-
-            // 3行目以降にタイムスタンプとコメントを追加
+            // タイムスタンプとコメントを挿入
             timestampEntries.forEach(entry => {
                 const time = entry.querySelector('span').innerText;
                 const comment = entry.querySelector('input').value;
-                data.push({ Time: time, Comment: comment });
+                data.push({ A: time, B: comment });
             });
 
-            const ws = XLSX.utils.json_to_sheet(data);
+            // シート作成
+            const ws = XLSX.utils.json_to_sheet(data, { header: ['A', 'B'], skipHeader: true });
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Timestamps');
 
+            // エクセルファイル出力
             XLSX.writeFile(wb, 'timestamps.xlsx');
         }
     </script>
