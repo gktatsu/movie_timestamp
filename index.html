@@ -29,6 +29,9 @@
             background: linear-gradient(135deg, var(--background-color), #FF851B);
             color: var(--text-color);
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .container {
@@ -38,6 +41,7 @@
             background-color: rgba(255, 255, 255, 0.9);
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
         }
 
         .header {
@@ -116,6 +120,8 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             border-radius: 20px;
             overflow: hidden;
+            width: 100%;
+            height: auto;
         }
 
         #getTimestamp {
@@ -275,13 +281,27 @@
                 margin-bottom: 0.5rem;
             }
         }
+
+        @media (max-width: 1200px) {
+            #player {
+                height: auto;
+                max-height: 480px;
+            }
+        }
+
+        @media (min-width: 1201px) {
+            #player {
+                height: 390px;
+                max-width: 640px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div class="logo">📺</div>
-            <h1>YouTube Live タイムスタンプアプリ</h1>
+            <h1>YouTube Live タイムスタンプ　アプリ</h1>
         </div>
         <div class="input-section">
             <input type="text" id="youtubeLinkInput" placeholder="YouTube Live URLを入力">
@@ -338,8 +358,6 @@
                     player.loadVideoById(videoId);
                 } else {
                     player = new YT.Player('player', {
-                        height: '390',
-                        width: '640',
                         videoId: videoId,
                         events: {
                             'onReady': onPlayerReady,
