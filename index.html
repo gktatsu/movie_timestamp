@@ -178,6 +178,10 @@
             margin-bottom: 1rem;
         }
 
+        #timeOffset {
+            margin-bottom: 1rem;
+        }
+
         @media (max-width: 600px) {
             .input-section {
                 flex-direction: column;
@@ -191,21 +195,26 @@
 </head>
 <body>
     <div class="container">
-        <h1>YouTube タイムスタンプ アプリ</h1>
+        <h1>YouTube Live タイムスタンプアプリ</h1>
         <div class="input-section">
-            <input type="text" id="youtubeLinkInput" placeholder="視聴するYouTubeのURLを入力">
+            <input type="text" id="youtubeLinkInput" placeholder="YouTube Live URLを入力">
             <button id="loadVideoButton">動画を読み込む</button>
         </div>
         <div id="errorMessage"></div>
         <div id="loadingIndicator">動画を読み込んでいます...</div>
         <div id="player"></div>
+        <label for="timeOffset">何秒前のタイムスタンプを記録しますか？</label>
+        <select id="timeOffset">
+            <option value="0">現在の時刻</option>
+            <option value="30">30秒前</option>
+            <option value="60">1分前</option>
+        </select>
         <button id="getTimestamp" disabled>タイムスタンプを記録</button>
         <select id="sortOrder">
             <option value="newest">新しい順</option>
             <option value="oldest">古い順</option>
         </select>
         <ul id="timestampEntries"></ul>
-        <button id="endViewingButton" disabled>視聴終了<br>（タイムスタンプとコメントを保存する）</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -225,7 +234,6 @@
 
         document.getElementById('loadVideoButton').addEventListener('click', loadVideo);
         document.getElementById('getTimestamp').addEventListener('click', addTimestamp);
-        document.getElementById('endViewingButton').addEventListener('click', saveToExcel);
 
         function loadVideo() {
             const url = document.getElementById('youtubeLinkInput').value;
@@ -263,7 +271,6 @@
 
         function onPlayerReady(event) {
             document.getElementById('getTimestamp').disabled = false;
-            document.getElementById('endViewingButton').disabled = false;
             document.getElementById('loadingIndicator').style.display = 'none';
         }
 
@@ -274,13 +281,20 @@
 
         function addTimestamp() {
             const currentTime = player.getCurrentTime();
-            const formattedTime = formatTime(currentTime);
+            const offset = parseInt(document.getElementById('timeOffset').value, 10);
+            let targetTime = currentTime - offset;
+
+            if (targetTime < 0) {
+                targetTime = 0;  // 動画が指定時間未満の場合、0:00をタイムスタンプに設定
+            }
+
+            const formattedTime = formatTime(targetTime);
             const timestampEntries = document.getElementById('timestampEntries');
 
             const li = document.createElement('li');
             li.className = 'timestamp-entry';
             li.innerHTML = `
-                <button onclick="seekTo(${currentTime})">再生</button>
+                <button onclick="seekTo(${targetTime})">再生</button>
                 <span>${formattedTime}</span>
                 <input type="text" placeholder="コメントを入力">
                 <button class="delete-button" onclick="deleteTimestamp(this)">削除</button>
@@ -312,22 +326,6 @@
         function deleteTimestamp(element) {
             const li = element.parentElement;
             li.remove();
-        }
-
-        function saveToExcel() {
-            const timestampEntries = document.querySelectorAll('.timestamp-entry');
-            const data = [];
-            timestampEntries.forEach(entry => {
-                const time = entry.querySelector('span').innerText;
-                const comment = entry.querySelector('input').value;
-                data.push({ Time: time, Comment: comment });
-            });
-
-            const ws = XLSX.utils.json_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Timestamps');
-
-            XLSX.writeFile(wb, 'timestamps.xlsx');
         }
     </script>
 </body>
