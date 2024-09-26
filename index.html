@@ -215,6 +215,7 @@
             <option value="oldest">古い順</option>
         </select>
         <ul id="timestampEntries"></ul>
+        <button id="endViewingButton" disabled>視聴終了</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
@@ -234,6 +235,7 @@
 
         document.getElementById('loadVideoButton').addEventListener('click', loadVideo);
         document.getElementById('getTimestamp').addEventListener('click', addTimestamp);
+        document.getElementById('endViewingButton').addEventListener('click', saveToExcel);
 
         function loadVideo() {
             const url = document.getElementById('youtubeLinkInput').value;
@@ -271,6 +273,7 @@
 
         function onPlayerReady(event) {
             document.getElementById('getTimestamp').disabled = false;
+            document.getElementById('endViewingButton').disabled = false;
             document.getElementById('loadingIndicator').style.display = 'none';
         }
 
@@ -326,6 +329,22 @@
         function deleteTimestamp(element) {
             const li = element.parentElement;
             li.remove();
+        }
+
+        function saveToExcel() {
+            const timestampEntries = document.querySelectorAll('.timestamp-entry');
+            const data = [];
+            timestampEntries.forEach(entry => {
+                const time = entry.querySelector('span').innerText;
+                const comment = entry.querySelector('input').value;
+                data.push({ Time: time, Comment: comment });
+            });
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Timestamps');
+
+            XLSX.writeFile(wb, 'timestamps.xlsx');
         }
     </script>
 </body>
