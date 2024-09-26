@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube タイムスタンプ アプリ</title>
+    <title>YouTube TimeStamp App</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
 
@@ -42,7 +42,7 @@
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             width: 100%;
-            text-align: center; /* コンテナ全体の中央寄せ */
+            text-align: center;
         }
 
         .header {
@@ -120,7 +120,7 @@
         .player-wrapper {
             position: relative;
             width: 100%;
-            padding-bottom: 56.25%; /* 高さを16:9の比率に設定 (9/16 * 100 = 56.25%) */
+            padding-bottom: 56.25%;
             height: 0;
             margin-bottom: 2rem;
         }
@@ -213,7 +213,9 @@
             background-color: #B10DC9;
         }
 
+        /* エラーメッセージの初期状態は非表示 */
         #errorMessage {
+            display: none;
             color: var(--error-color);
             margin-top: 1rem;
             font-weight: bold;
@@ -221,6 +223,7 @@
             padding: 1rem;
             background-color: rgba(255, 255, 255, 0.8);
             border-radius: 20px;
+            border: 2px solid var(--error-color);
         }
 
         #loadingIndicator {
@@ -298,16 +301,15 @@
     <div class="container">
         <div class="header">
             <div class="logo">📺</div>
-            <h1>YouTube タイムスタンプ　アプリ</h1>
+            <h1>YouTube TimeStamp App</h1>
         </div>
         <div class="input-section">
-            <input type="text" id="youtubeLinkInput" placeholder="YouTube Live URLを入力">
+            <input type="text" id="youtubeLinkInput" placeholder="YouTubeのURLを入力">
             <button id="loadVideoButton">動画を読み込む</button>
         </div>
         <div id="errorMessage"></div>
         <div id="loadingIndicator">動画を読み込んでいます...</div>
 
-        <!-- 16:9のアスペクト比を維持するためのラッパー -->
         <div class="player-wrapper">
             <div id="player"></div>
         </div>
@@ -353,8 +355,8 @@
             videoId = extractVideoId(url);
 
             if (videoId) {
-                document.getElementById('errorMessage').textContent = '';
-                document.getElementById('loadingIndicator').style.display = 'block';
+                document.getElementById('errorMessage').style.display = 'none'; // エラーメッセージを非表示
+                document.getElementById('loadingIndicator').style.display = 'block'; // ローディング表示
 
                 if (player) {
                     player.loadVideoById(videoId);
@@ -370,7 +372,8 @@
                 resetTimestamps();
             } else {
                 document.getElementById('errorMessage').textContent = '無効なYouTube URLです。正しいURLを入力してください。';
-                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('errorMessage').style.display = 'block'; // エラーメッセージを表示
+                document.getElementById('loadingIndicator').style.display = 'none'; // ローディングを非表示
             }
         }
 
@@ -388,7 +391,8 @@
 
         function onPlayerError(event) {
             document.getElementById('errorMessage').textContent = '動画の読み込み中にエラーが発生しました。URLを確認して再試行してください。';
-            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'block'; // エラーメッセージを表示
+            document.getElementById('loadingIndicator').style.display = 'none'; // ローディングを非表示
         }
 
         function addTimestamp() {
@@ -397,7 +401,7 @@
             let targetTime = currentTime - offset;
 
             if (targetTime < 0) {
-                targetTime = 0;  // 動画が指定時間未満の場合、0:00をタイムスタンプに設定
+                targetTime = 0;
             }
 
             const formattedTime = formatTime(targetTime);
