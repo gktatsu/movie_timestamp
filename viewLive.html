@@ -41,16 +41,29 @@
             font-size: 14px;
             margin-right: 10px;
         }
+        #youtubeLinkInput {
+            width: 80%;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
     <div id="container">
+        <h1>YouTube Live タイムスタンプアプリ</h1>
+
+        <!-- YouTubeライブのリンク入力フィールド -->
+        <input type="text" id="youtubeLinkInput" placeholder="YouTubeライブのリンクを入力してください">
+        <button id="loadVideoButton">動画を読み込む</button>
+
         <div id="playerWrapper">
             <div id="player"></div>
         </div>
+
         <div id="controls">
             <button id="getTimestamp">記録ボタン</button>
         </div>
+
         <div id="timestampsList">
             <h3>記録されたタイムスタンプ</h3>
             <ul id="timestampEntries"></ul>
@@ -61,21 +74,44 @@
     <script>
         let player;
 
-        // YouTube動画IDを取得
-        const urlParams = new URLSearchParams(window.location.search);
-        const videoId = urlParams.get('videoId');
-
         // YouTube IFrame APIの準備
         function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', {
-                height: '390',
-                width: '640',
-                videoId: "1Q4KSwr-HGs", // URLから取得したYouTubeライブのビデオID
-                events: {
-                    'onReady': onPlayerReady
-                }
-            });
+            // 初期状態ではプレイヤーはまだ作成しない
         }
+
+        // YouTubeのリンクからvideoIDを取得する関数
+        function extractVideoId(url) {
+            const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        // 動画をロードするボタンが押されたときの処理
+        document.getElementById('loadVideoButton').addEventListener('click', function() {
+            const youtubeUrl = document.getElementById('youtubeLinkInput').value;
+            const videoId = extractVideoId(youtubeUrl);
+            
+            if (videoId) {
+                // タイムスタンプリストをリセット
+                document.getElementById('timestampEntries').innerHTML = '';
+
+                // YouTubeプレイヤーを作成またはリロード
+                if (player) {
+                    player.loadVideoById(videoId);
+                } else {
+                    player = new YT.Player('player', {
+                        height: '390',
+                        width: '640',
+                        videoId: videoId,
+                        events: {
+                            'onReady': onPlayerReady
+                        }
+                    });
+                }
+            } else {
+                alert("有効なYouTubeライブのリンクを入力してください。");
+            }
+        });
 
         // タイムスタンプリストの要素を管理
         const timestampEntriesElement = document.getElementById('timestampEntries');
