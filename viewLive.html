@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Live Timestamp App</title>
+    <style>
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #playerWrapper {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #controls {
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        #timestampDisplay {
+            font-size: 20px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="playerWrapper">
+            <div id="player"></div>
+        </div>
+        <div id="controls">
+            <button id="getTimestamp">記録ボタン</button>
+            <div id="timestampDisplay">タイムスタンプ: <span id="timestamp">--:--</span></div>
+        </div>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        let player;
+        let timestampElement = document.getElementById('timestamp');
+
+        // URLからビデオIDを取得
+        const urlParams = new URLSearchParams(window.location.search);
+        const videoId = urlParams.get('videoId');
+
+        // YouTube IFrame APIの準備
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '390',
+                width: '640',
+                videoId: videoId, // URLから取得したYouTubeライブのビデオID
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+
+        // プレーヤーが準備完了時に呼び出される関数
+        function onPlayerReady(event) {
+            document.getElementById('getTimestamp').addEventListener('click', function() {
+                const currentTime = player.getCurrentTime();  // タイムスタンプを取得
+                timestampElement.textContent = formatTime(currentTime); // 取得した時間を表示
+            });
+        }
+
+        // 秒数を分:秒形式に変換する関数
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+    </script>
+</body>
+</html>
